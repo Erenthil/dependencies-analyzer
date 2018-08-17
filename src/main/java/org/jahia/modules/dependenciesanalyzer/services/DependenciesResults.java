@@ -2,7 +2,6 @@ package org.jahia.modules.dependenciesanalyzer.services;
 
 import java.util.Set;
 import org.jahia.data.templates.JahiaTemplatesPackage;
-import org.jahia.modules.dependenciesanalyzer.api.DependenciesAnalyzerService;
 import org.jahia.registries.ServicesRegistry;
 import org.jahia.services.templates.JahiaTemplateManagerService;
 
@@ -19,7 +18,7 @@ public final class DependenciesResults {
         this.dependencies = dependencies;
         final JahiaTemplateManagerService jahiaTemplateManagerService = ServicesRegistry.getInstance().getJahiaTemplateManagerService();
         final JahiaTemplatesPackage jahiaTemplatePackage = jahiaTemplateManagerService.getAnyDeployedTemplatePackage(module);
-        this.jahiaModule = jahiaTemplatePackage.getGroupId().equals(DependenciesAnalyzerService.GROUP_ID_JAHIA_MODULES);
+        this.jahiaModule = jahiaTemplatePackage.getGroupId().equals(DependenciesAnalyzerServiceImpl.GROUP_ID_JAHIA_MODULES);
 
     }
 

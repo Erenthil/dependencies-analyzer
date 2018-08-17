@@ -1,5 +1,6 @@
 package org.jahia.modules.dependenciesanalyzer.services.checks;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,9 +49,7 @@ public class DefinitionsCheck extends AbstractDependenciesAnalysis {
 
                 while (nodeTypes.hasNext()) {
                     final NodeType next = nodeTypes.nextNodeType();
-                    for (String supertypeName : next.getDeclaredSupertypeNames()) {
-                        dependencies.add(supertypeName);
-                    }
+                    dependencies.addAll(Arrays.asList(next.getDeclaredSupertypeNames()));
                 }
             }
         });

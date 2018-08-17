@@ -12,13 +12,10 @@ import org.jahia.modules.dependenciesanalyzer.api.DependenciesAnalysis;
 import org.jahia.modules.dependenciesanalyzer.services.DependenciesResults;
 import org.jahia.registries.ServicesRegistry;
 import org.jahia.services.templates.JahiaTemplateManagerService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class AbstractDependenciesAnalysis implements DependenciesAnalysis {
 
-    public static final List<String> MODULES_TO_IGNORE = Arrays.asList("system-jahia", "system-system");
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDependenciesAnalysis.class);
+    protected static final List<String> MODULES_TO_IGNORE = Arrays.asList("system-jahia", "system-system");
     private final Map<String, Set<String>> expectedDependencies = new TreeMap<>();
     private final String type;
     private String description;

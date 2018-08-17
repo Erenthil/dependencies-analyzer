@@ -11,17 +11,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import net.sf.ehcache.Cache;
 import org.jahia.bin.Jahia;
 import org.jahia.data.templates.JahiaTemplatesPackage;
-import org.jahia.exceptions.JahiaException;
-import org.jahia.exceptions.JahiaInitializationException;
 import org.jahia.modules.dependenciesanalyzer.api.DependenciesAnalysis;
 import org.jahia.modules.dependenciesanalyzer.api.DependenciesAnalyzerService;
 import org.jahia.modules.dependenciesanalyzer.services.impl.AbstractDependenciesAnalysis;
 import org.jahia.registries.ServicesRegistry;
-import org.jahia.services.SpringContextSingleton;
-import org.jahia.services.cache.ehcache.EhCacheProvider;
 import org.jahia.services.templates.JahiaTemplateManagerService;
 import org.osgi.framework.Constants;
 import org.osgi.service.component.annotations.Activate;
@@ -42,35 +37,17 @@ public class DependenciesAnalyzerServiceImpl implements DependenciesAnalyzerServ
     private static final String OUTPUT_EXTENSION = "jpg";
     private static final String DOT_PATH = "/usr/bin/dot";
     private static final String OUTPUT_FOLDER = "/tmp/graphviz/";
+    public static final String GROUP_ID_JAHIA_MODULES = "org.jahia.modules";
     private final List<DependenciesAnalysis> dependenciesAnalyses = new ArrayList<>();
-    private final String missingDependenciesCacheName = "DependenciesAnalyzerService-missing-dependencies";
-    private final long missingDependenciesCacheTtl = 24L * 3600L; // 1 day;
-    private Cache missingDependenciesCache;
-    private EhCacheProvider ehCacheProvider;
     private long dependenciesAnalysisIdGenerator = 0;
 
     @Activate
-    public void start() throws JahiaInitializationException {
-        if (ehCacheProvider == null) {
-            ehCacheProvider = (EhCacheProvider) SpringContextSingleton.getBean("bigEhCacheProvider");
-        }
-        if (missingDependenciesCache == null) {
-            missingDependenciesCache = ehCacheProvider.getCacheManager().getCache(missingDependenciesCacheName);
-            if (missingDependenciesCache == null) {
-                ehCacheProvider.getCacheManager().addCache(missingDependenciesCacheName);
-                missingDependenciesCache = ehCacheProvider.getCacheManager().getCache(missingDependenciesCacheName);
-                missingDependenciesCache.getCacheConfiguration().setTimeToIdleSeconds(missingDependenciesCacheTtl);
-            }
-        }
-
+    public void start() {
         LOGGER.info("Dependencies analyzer service started");
     }
 
     @Deactivate
-    public void stop() throws JahiaException {
-        if (missingDependenciesCache != null) {
-            missingDependenciesCache.flush();
-        }
+    public void stop() {
         LOGGER.info("Dependencies analyzer service stopped");
     }
 
@@ -105,19 +82,23 @@ public class DependenciesAnalyzerServiceImpl implements DependenciesAnalyzerServ
         setCurrentDependenciesResults(currentDependencies, currentDependenciesResults);
 
         final List<DependenciesResults> missingDependenciesResults = new ArrayList<>();
-        for (DependenciesAnalysis dependenciesAnalysis : dependenciesAnalyses) {
+        dependenciesAnalyses.stream().map(dependenciesAnalysis -> {
             logAndAppend(String.format("   %s", dependenciesAnalysis), lines);
+            return dependenciesAnalysis;
+        }).map(dependenciesAnalysis -> {
             dependenciesAnalysis.setExpectedDependencies();
+            return dependenciesAnalysis;
+        }).forEachOrdered(dependenciesAnalysis -> {
             dependenciesAnalysis.calculateMissingDependencies(currentDependencies, missingDependenciesResults);
-        }
+        });
 
-        for (DependenciesResults dependenciesResults : missingDependenciesResults) {
+        missingDependenciesResults.forEach(dependenciesResults -> {
             final String module = dependenciesResults.getModule();
             final String type = dependenciesResults.getType();
-            for (String dependency : dependenciesResults.getDependencies()) {
+            dependenciesResults.getDependencies().forEach(dependency -> {
                 logAndAppend(String.format("%s;%s;%s", module, type, dependency), lines);
-            }
-        }
+            });
+        });
         return lines;
     }
 
@@ -128,7 +109,7 @@ public class DependenciesAnalyzerServiceImpl implements DependenciesAnalyzerServ
         final Map<String, Set<String>> currentDependencies = getCurrentDependencies();
         setCurrentDependenciesResults(currentDependencies, currentDependenciesResults);
 
-        for (DependenciesAnalysis dependenciesAnalysis : dependenciesAnalyses) {
+        dependenciesAnalyses.forEach(dependenciesAnalysis -> {
             final String analysisName = dependenciesAnalysis.getName();
             final List<DependenciesResults> missingDependenciesResults = new ArrayList<>();
             dependenciesAnalysis.setExpectedDependencies();
@@ -138,20 +119,18 @@ public class DependenciesAnalyzerServiceImpl implements DependenciesAnalyzerServ
             final Digraph digraph = graph.getDigraph();
 
             // Display in the graph the current dependencies
-            for (DependenciesResults results : currentDependenciesResults) {
-                if (!(skipJahiaModule && results.isJahiaModule())) {
-                    final String module = results.getModule();
-                    final Set<String> pomDependencies = results.getDependencies();
-                    updateGraph(pomDependencies, digraph, module, "arrowType=normal color=black");
-                }
-            }
+            currentDependenciesResults.stream().filter(results -> (!(skipJahiaModule && results.isJahiaModule()))).forEachOrdered(results -> {
+                final String module = results.getModule();
+                final Set<String> pomDependencies = results.getDependencies();
+                updateGraph(pomDependencies, digraph, module, "arrowType=normal color=black");
+            });
 
             // Display in the graph the missing dependencies
-            for (DependenciesResults results : missingDependenciesResults) {
+            missingDependenciesResults.forEach(results -> {
                 final String module = results.getModule();
                 final Set<String> pomDependencies = results.getDependencies();
                 updateGraph(pomDependencies, digraph, module, "arrowType=normal color=red style=bold");
-            }
+            });
 
             // Create the graph
             try {
@@ -164,7 +143,7 @@ public class DependenciesAnalyzerServiceImpl implements DependenciesAnalyzerServ
             } catch (IOException | InterruptedException ex) {
                 LOGGER.error("Impossible to create graph", ex);
             }
-        }
+        });
 
     }
 
@@ -213,9 +192,9 @@ public class DependenciesAnalyzerServiceImpl implements DependenciesAnalyzerServ
 
     private Map<String, Set<String>> getCurrentDependencies() {
         final Map<String, Set<String>> poms = new TreeMap<>();
-        AbstractDependenciesAnalysis.getActiveModules().forEach((module) -> {
+        AbstractDependenciesAnalysis.getActiveModules().forEach(module -> {
             final Set<String> dependencies = new TreeSet<>();
-            module.getDependencies().forEach((dependency) -> {
+            module.getDependencies().forEach(dependency -> {
                 dependencies.add(dependency.getBundle().getSymbolicName());
             });
             poms.put(module.getBundle().getSymbolicName(), dependencies);
@@ -224,10 +203,10 @@ public class DependenciesAnalyzerServiceImpl implements DependenciesAnalyzerServ
     }
 
     public void setCurrentDependenciesResults(Map<String, Set<String>> currentDependencies, List<DependenciesResults> results) {
-        for (Map.Entry<String, Set<String>> entry : currentDependencies.entrySet()) {
+        currentDependencies.entrySet().forEach(entry -> {
             final String module = entry.getKey();
             final Set<String> dependencies = entry.getValue();
             results.add(new DependenciesResults("current", module, dependencies));
-        }
+        });
     }
 }

@@ -39,7 +39,7 @@ public class OsgiServicesCheck extends AbstractDependenciesAnalysis {
     @Override
     public Map<String, String> buildOrigins() {
         final Map<String, String> origins = new HashMap<>();
-        for (JahiaTemplatesPackage module : getActiveModules()) {
+        getActiveModules().forEach((module) -> {
             final Enumeration<URL> urls = module.getBundle().findEntries("/", "*.class", true);
             if (urls != null) {
                 final String moduleName = module.getId();
@@ -49,7 +49,7 @@ public class OsgiServicesCheck extends AbstractDependenciesAnalysis {
                     origins.put(className, moduleName);
                 }
             }
-        }
+        });
         return origins;
     }
 
@@ -57,7 +57,7 @@ public class OsgiServicesCheck extends AbstractDependenciesAnalysis {
     public Map<String, Set<String>> getExpectedDependencies() {
         final Map<String, Set<String>> osgiServices = new TreeMap<>();
 
-        for (JahiaTemplatesPackage module : getActiveModules()) {
+        getActiveModules().forEach((module) -> {
             final Enumeration<URL> urls = module.getBundle().findEntries("/META-INF/spring", "*.xml", true);
             if (urls != null) {
                 final String moduleName = module.getId();
@@ -94,7 +94,7 @@ public class OsgiServicesCheck extends AbstractDependenciesAnalysis {
                     }
                 }
             }
-        }
+        });
         return osgiServices;
     }
 }
