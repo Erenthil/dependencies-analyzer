@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>jahia-modules</artifactId>
+        <groupId>org.jahia.modules</groupId>
+        <version>7.2.3.1</version>
+    </parent>
+    <groupId>org.jahia.modules</groupId>
+    <artifactId>dependencies-analyzer</artifactId>
+    <name>Dependencies Analyzer</name>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>bundle</packaging>
+    <description>Use to analyse the expected and missing dependencies between modules.</description>
+
+    <properties>
+        <jahia-depends>default</jahia-depends>
+        <jahia-module-type>system</jahia-module-type>
+        <export-package>org.jahia.modules.dependenciesanalyzer.api,
+            org.jahia.modules.dependenciesanalyzer.services.impl,
+            com.google.gson.*</export-package>
+    </properties>
+
+    <scm>
+        <connection>scm:git:git@github.com:Jahia/dependencies-analyzer</connection>
+        <developerConnection>scm:git:git@github.com:Jahia/dependencies-analyzer</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <repositories>
+        <repository>
+            <id>jahia-public</id>
+            <name>Jahia Public Repository</name>
+            <url>https://devtools.jahia.com/nexus/content/groups/public</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Karaf-Commands>*</Karaf-Commands>
+                        <_dsannotations>*</_dsannotations>
+                    </instructions>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.karaf.shell</groupId>
+            <artifactId>org.apache.karaf.shell.console</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.structurizr</groupId>
+            <artifactId>structurizr-core</artifactId>
+            <version>1.0.0-RC4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.structurizr</groupId>
+            <artifactId>structurizr-dot</artifactId>
+            <version>1.0.0-RC4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>1.4</version>
+        </dependency>
+    </dependencies>
+</project>
