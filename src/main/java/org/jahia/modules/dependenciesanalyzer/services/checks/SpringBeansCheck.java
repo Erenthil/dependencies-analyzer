@@ -14,7 +14,6 @@ import java.util.TreeSet;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import org.jahia.data.templates.JahiaTemplatesPackage;
 import org.jahia.modules.dependenciesanalyzer.api.DependenciesAnalysis;
 import org.jahia.modules.dependenciesanalyzer.services.impl.AbstractDependenciesAnalysis;
 import org.osgi.service.component.annotations.Component;
@@ -35,7 +34,6 @@ public class SpringBeansCheck extends AbstractDependenciesAnalysis {
             "ContentManagerHelper",
             "DefaulJCRStoreProvider",
             "DocumentConverterService",
-            "editmode",
             "ExternalProviderInitializerService",
             "HttpClientService",
             "JCRStoreService",
@@ -45,25 +43,32 @@ public class SpringBeansCheck extends AbstractDependenciesAnalysis {
             "JahiaUserManagerService",
             "MailService",
             "PublicationHelper",
+            "SchedulerService",
             "SettingsBean",
             "SourceControlFactory",
             "authPipeline",
+            "editmode",
             "ehCacheProvider",
+            "ehCacheUtils",
             "imageService",
+            "ImportExportService",
             "jahiaNotificationContext",
+            "jahiaSitesService",
             "jcrPublicationService",
             "jcrSessionFactory",
             "jcrTemplate",
             "loggingService",
+            "ModuleCacheProvider",
             "moduleSessionFactory",
             "org.jahia.services.seo.jcr.VanityUrlService",
             "org.jahia.services.tasks.TaskService",
             "permissionService",
-            "SchedulerService",
+            "RenderService",
             "scriptEngineUtils",
             "settingsBean",
             "studiomode",
             "urlResolverFactory",
+            "UrlRewriteService",
             "visibilityService",
             "workflowService"
     );
@@ -76,20 +81,80 @@ public class SpringBeansCheck extends AbstractDependenciesAnalysis {
     public Map<String, String> buildOrigins() {
         final Map<String, String> origins = new HashMap<>();
         getActiveModules().forEach((module) -> {
-            final Enumeration<URL> urls = module.getBundle().findEntries("/", "*.class", true);
+            Enumeration<URL> urls = module.getBundle().findEntries("/", "*.class", true);
+            final String moduleName = module.getId();
+
             if (urls != null) {
-                final String moduleName = module.getId();
                 while (urls.hasMoreElements()) {
                     final URL url = urls.nextElement();
                     final String className = url.getFile().replaceFirst("\\/", "").replaceFirst("\\.class", "").replaceAll("\\/", "\\.");
                     origins.put(className, moduleName);
                 }
             }
+            
+            urls = module.getBundle().findEntries("/", "*.groovy", true);
+            if (urls != null) {
+                while (urls.hasMoreElements()) {
+                    final URL url = urls.nextElement();
+                    final String className = url.getFile().replaceFirst("\\/", "").replaceFirst("\\.groovy", "").replaceAll("\\/", "\\.");
+                    origins.put(className, moduleName);
+                }
+            }
+
+            urls = module.getBundle().findEntries("/META-INF/spring", "*.xml", true);
+            if (urls != null) {
+                while (urls.hasMoreElements()) {
+
+                    try {
+                        final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                        final DocumentBuilder builder = factory.newDocumentBuilder();
+                        final URL url = urls.nextElement();
+
+                        final Document document = builder.parse((InputStream) url.getContent());
+                        final Element racine = document.getDocumentElement();
+                        NodeList elements = racine.getElementsByTagName("lang:groovy");
+                        for (int i = 0; i < elements.getLength(); i++) {
+                            final Node bean = elements.item(i);
+                            final Node nodeId = bean.getAttributes().getNamedItem("id");
+                            if (nodeId != null) {
+                                final String beanId = nodeId.getNodeValue();
+                                origins.put(beanId, moduleName);
+                            }
+                        }
+                        
+                        elements = racine.getElementsByTagName("bean");
+                        for (int i = 0; i < elements.getLength(); i++) {
+                            final Node bean = elements.item(i);
+                            final Node nodeId = bean.getAttributes().getNamedItem("id");
+                            if (nodeId != null) {
+                                final String beanId = nodeId.getNodeValue();
+                                origins.put(beanId, moduleName);
+                            }
+                        }
+                        
+                        elements = racine.getElementsByTagName("osgi:list");
+                        for (int i = 0; i < elements.getLength(); i++) {
+                            final Node bean = elements.item(i);
+                            final Node nodeId = bean.getAttributes().getNamedItem("id");
+                            if (nodeId != null) {
+                                final String beanId = nodeId.getNodeValue();
+                                origins.put(beanId, moduleName);
+                            }
+                        }
+
+                    } catch (ParserConfigurationException | SAXException | IOException ex) {
+                        LOGGER.error("Impossible to read Spring XML file", ex);
+                    }
+                }
+                
+                
+            }
         });
         return origins;
     }
 
     @Override
+
     public Map<String, Set<String>> getExpectedDependencies() {
         final Map<String, Set<String>> springBeans = new TreeMap<>();
 
@@ -125,7 +190,7 @@ public class SpringBeansCheck extends AbstractDependenciesAnalysis {
                             }
                         }
 
-                        final NodeList properties = racine.getElementsByTagName("property");
+                        NodeList properties = racine.getElementsByTagName("property");
                         for (int i = 0; i < properties.getLength(); i++) {
                             final Node property = properties.item(i);
                             final Node refId = property.getAttributes().getNamedItem("ref");
@@ -141,6 +206,23 @@ public class SpringBeansCheck extends AbstractDependenciesAnalysis {
                                     }
                                     dependencies.add(beanId);
                                 }
+                            }
+                        }
+
+                        properties = racine.getElementsByTagName("lang:groovy");
+                        for (int i = 0; i < properties.getLength(); i++) {
+                            final Node property = properties.item(i);
+                            final Node refId = property.getAttributes().getNamedItem("script-source");
+                            if (refId != null) {
+                                final String beanId = refId.getNodeValue().replace("classpath:", "").replaceFirst("\\.groovy", "").replaceAll("\\/", "\\.");
+                                final Set<String> dependencies;
+                                if (springBeans.containsKey(moduleName)) {
+                                    dependencies = springBeans.get(moduleName);
+                                } else {
+                                    dependencies = new TreeSet<>();
+                                    springBeans.put(moduleName, dependencies);
+                                }
+                                dependencies.add(beanId);
                             }
                         }
                     } catch (ParserConfigurationException | SAXException | IOException ex) {
