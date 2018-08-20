@@ -11,7 +11,6 @@ import org.jahia.data.templates.JahiaTemplatesPackage;
 import org.jahia.modules.dependenciesanalyzer.api.DependenciesAnalysis;
 import org.jahia.modules.dependenciesanalyzer.services.DependenciesResults;
 import org.jahia.registries.ServicesRegistry;
-import org.jahia.services.templates.JahiaTemplateManagerService;
 
 public abstract class AbstractDependenciesAnalysis implements DependenciesAnalysis {
 
@@ -76,7 +75,6 @@ public abstract class AbstractDependenciesAnalysis implements DependenciesAnalys
 
     @Override
     public void calculateMissingDependencies(Map<String, Set<String>> currentDependencies, List<DependenciesResults> results) {
-        final JahiaTemplateManagerService jahiaTemplateManagerService = ServicesRegistry.getInstance().getJahiaTemplateManagerService();
         expectedDependencies.entrySet().forEach((entry) -> {
             final String module = entry.getKey();
             final Set<String> dependencies = entry.getValue();

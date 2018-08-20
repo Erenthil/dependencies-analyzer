@@ -4,21 +4,30 @@ import io.github.livingdocumentation.dotdiagram.DotGraph;
 import io.github.livingdocumentation.dotdiagram.DotGraph.Digraph;
 import io.github.livingdocumentation.dotdiagram.DotStyles;
 import io.github.livingdocumentation.dotdiagram.GraphvizDotWriter;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import javax.jcr.RepositoryException;
+import org.jahia.api.Constants;
 import org.jahia.bin.Jahia;
 import org.jahia.data.templates.JahiaTemplatesPackage;
 import org.jahia.modules.dependenciesanalyzer.api.DependenciesAnalysis;
 import org.jahia.modules.dependenciesanalyzer.api.DependenciesAnalyzerService;
 import org.jahia.modules.dependenciesanalyzer.services.impl.AbstractDependenciesAnalysis;
 import org.jahia.registries.ServicesRegistry;
+import org.jahia.services.content.JCRNodeWrapper;
+import org.jahia.services.content.JCRSessionFactory;
+import org.jahia.services.content.JCRSessionWrapper;
 import org.jahia.services.templates.JahiaTemplateManagerService;
-import org.osgi.framework.Constants;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -28,15 +37,14 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 
 @Component(name = "org.jahia.modules.dependenciesanalyzer.service", service = DependenciesAnalyzerService.class, property = {
-    Constants.SERVICE_PID + "=org.jahia.modules.dependenciesanalyzer.service",
-    Constants.SERVICE_DESCRIPTION + "=Dependencies analyzer service",
-    Constants.SERVICE_VENDOR + "=" + Jahia.VENDOR_NAME}, immediate = true)
+    org.osgi.framework.Constants.SERVICE_PID + "=org.jahia.modules.dependenciesanalyzer.service",
+    org.osgi.framework.Constants.SERVICE_DESCRIPTION + "=Dependencies analyzer service",
+    org.osgi.framework.Constants.SERVICE_VENDOR + "=" + Jahia.VENDOR_NAME}, immediate = true)
 public class DependenciesAnalyzerServiceImpl implements DependenciesAnalyzerService {
 
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(DependenciesAnalyzerServiceImpl.class);
+    private static final String TMP_DIR = System.getProperty("java.io.tmpdir") + "/";
     private static final String OUTPUT_EXTENSION = "jpg";
-    private static final String DOT_PATH = "/usr/bin/dot";
-    private static final String OUTPUT_FOLDER = "/tmp/graphviz/";
     public static final String GROUP_ID_JAHIA_MODULES = "org.jahia.modules";
     private final List<DependenciesAnalysis> dependenciesAnalyses = new ArrayList<>();
     private long dependenciesAnalysisIdGenerator = 0;
@@ -75,7 +83,6 @@ public class DependenciesAnalyzerServiceImpl implements DependenciesAnalyzerServ
     public List<String> printDependenciesAnalysesList() {
         final int nbAnalyses = dependenciesAnalyses.size();
         final List<String> lines = new ArrayList<>(nbAnalyses + 1);
-        logAndAppend(String.format("Dependencies analyses (%d):", nbAnalyses), lines);
 
         final List<DependenciesResults> currentDependenciesResults = new ArrayList<>();
         final Map<String, Set<String>> currentDependencies = getCurrentDependencies();
@@ -83,7 +90,6 @@ public class DependenciesAnalyzerServiceImpl implements DependenciesAnalyzerServ
 
         final List<DependenciesResults> missingDependenciesResults = new ArrayList<>();
         dependenciesAnalyses.stream().map(dependenciesAnalysis -> {
-            logAndAppend(String.format("   %s", dependenciesAnalysis), lines);
             return dependenciesAnalysis;
         }).map(dependenciesAnalysis -> {
             dependenciesAnalysis.setExpectedDependencies();
@@ -96,7 +102,7 @@ public class DependenciesAnalyzerServiceImpl implements DependenciesAnalyzerServ
             final String module = dependenciesResults.getModule();
             final String type = dependenciesResults.getType();
             dependenciesResults.getDependencies().forEach(dependency -> {
-                logAndAppend(String.format("%s;%s;%s", module, type, dependency), lines);
+                lines.add(String.format("%s;%s;%s", module, type, dependency));
             });
         });
         return lines;
@@ -108,6 +114,8 @@ public class DependenciesAnalyzerServiceImpl implements DependenciesAnalyzerServ
         final List<DependenciesResults> currentDependenciesResults = new ArrayList<>();
         final Map<String, Set<String>> currentDependencies = getCurrentDependencies();
         setCurrentDependenciesResults(currentDependencies, currentDependenciesResults);
+        final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd/HH/mm/ss");
+        final String storageFolder = dateFormat.format(new Date());
 
         dependenciesAnalyses.forEach(dependenciesAnalysis -> {
             final String analysisName = dependenciesAnalysis.getName();
@@ -133,23 +141,35 @@ public class DependenciesAnalyzerServiceImpl implements DependenciesAnalyzerServ
             });
 
             // Create the graph
+            InputStream graphStream = null;
+            final String dotName = analysisName + ".dot";
+            final String graphName = analysisName + "." + OUTPUT_EXTENSION;
             try {
-                final String fileName = analysisName;
-                final String command = String.format("%s -T %s -o %s %s", DOT_PATH, OUTPUT_EXTENSION, OUTPUT_FOLDER + fileName + "." + OUTPUT_EXTENSION, OUTPUT_FOLDER + fileName + ".dot");
-                final GraphvizDotWriter dotWriter = new GraphvizDotWriter(OUTPUT_FOLDER, DOT_PATH, OUTPUT_EXTENSION, command);
+                final String command = String.format("%s -T %s -o %s %s", "dot", OUTPUT_EXTENSION, TMP_DIR + graphName, TMP_DIR + dotName);
+                final GraphvizDotWriter dotWriter = new GraphvizDotWriter(TMP_DIR, "dot", OUTPUT_EXTENSION, command);
 
-                dotWriter.write(fileName, graph.render());
-                dotWriter.render(fileName);
-            } catch (IOException | InterruptedException ex) {
+                dotWriter.write(analysisName, graph.render());
+                dotWriter.render(analysisName);
+
+                final JCRNodeWrapper dependenciesAnalyzerNode = mkdirs("/sites/systemsite/files/dependencies-analyzer/" + storageFolder);
+                final File graphFile = new File(TMP_DIR + graphName);
+                graphStream = new FileInputStream(graphFile);
+                dependenciesAnalyzerNode.uploadFile(graphName, graphStream, "image/jpg");
+                dependenciesAnalyzerNode.saveSession();
+            } catch (IOException | InterruptedException | RepositoryException ex) {
                 LOGGER.error("Impossible to create graph", ex);
+            } finally {
+                if (graphStream != null) {
+                    try {
+                        new File(TMP_DIR + dotName).delete();
+                        new File(TMP_DIR + graphName).delete();
+                        graphStream.close();
+                    } catch (IOException ex) {
+                    }
+                }
             }
         });
 
-    }
-
-    private void logAndAppend(String line, List<String> lines) {
-        LOGGER.info(line);
-        lines.add(line);
     }
 
     private static void updateGraph(Set<String> dependencies, Digraph digraph, String module, String style) {
@@ -208,5 +228,20 @@ public class DependenciesAnalyzerServiceImpl implements DependenciesAnalyzerServ
             final Set<String> dependencies = entry.getValue();
             results.add(new DependenciesResults("current", module, dependencies));
         });
+    }
+
+    private static JCRNodeWrapper mkdirs(String path) throws RepositoryException {
+        final JCRSessionWrapper session = JCRSessionFactory.getInstance().getCurrentSystemSession(Constants.EDIT_WORKSPACE, null, null);
+        JCRNodeWrapper folderNode = session.getRootNode();
+        for (String folder : path.split("\\/")) {
+            if (!folder.isEmpty()) {
+                if (folderNode.hasNode(folder)) {
+                    folderNode = folderNode.getNode(folder);
+                } else {
+                    folderNode = folderNode.addNode(folder, "jnt:folder");
+                }
+            }
+        }
+        return folderNode;
     }
 }
