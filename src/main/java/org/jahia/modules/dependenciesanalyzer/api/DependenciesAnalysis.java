@@ -9,6 +9,8 @@ public interface DependenciesAnalysis {
 
     String getName();
 
+    String getDescription();
+    
     long getId();
 
     void setId(long id);

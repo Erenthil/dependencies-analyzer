@@ -101,8 +101,9 @@ public class DependenciesAnalyzerServiceImpl implements DependenciesAnalyzerServ
         missingDependenciesResults.forEach(dependenciesResults -> {
             final String module = dependenciesResults.getModule();
             final String type = dependenciesResults.getType();
+            final String description = dependenciesResults.getDescription();
             dependenciesResults.getDependencies().forEach(dependency -> {
-                lines.add(String.format("%s;%s;%s", module, type, dependency));
+                lines.add(String.format("%s;%s;%s;%s", module, type, dependency, description));
             });
         });
         return lines;
@@ -226,7 +227,7 @@ public class DependenciesAnalyzerServiceImpl implements DependenciesAnalyzerServ
         currentDependencies.entrySet().forEach(entry -> {
             final String module = entry.getKey();
             final Set<String> dependencies = entry.getValue();
-            results.add(new DependenciesResults("current", module, dependencies));
+            results.add(new DependenciesResults("current", "", module, dependencies));
         });
     }
 

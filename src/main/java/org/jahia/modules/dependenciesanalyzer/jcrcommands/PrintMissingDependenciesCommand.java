@@ -22,6 +22,7 @@ public class PrintMissingDependenciesCommand implements Action {
         table.column(new Col("Module"));
         table.column(new Col("Dependency type"));
         table.column(new Col("Dependency"));
+        table.column(new Col("Description"));
         Utils.getDependenciesAnalyzerService().printDependenciesAnalysesList().forEach((line) -> {
             table.addRow().addContent(line.split(";"));
         });

@@ -74,7 +74,7 @@ public class SpringBeansCheck extends AbstractDependenciesAnalysis {
     );
 
     public SpringBeansCheck() {
-        super("spring-beans");
+        super("spring-beans", "Check that the Jahia dependencies match the ones expected by the Spring beans");
     }
 
     @Override

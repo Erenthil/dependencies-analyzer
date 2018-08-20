@@ -30,7 +30,7 @@ public class MavenCheck extends AbstractDependenciesAnalysis {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenCheck.class);
 
     public MavenCheck() {
-        super("maven");
+        super("maven", "Check that the Maven dependencies are the same than the Jahia dependencies");
     }
 
     @Override

@@ -33,7 +33,7 @@ public class OsgiReferencesCheck extends AbstractDependenciesAnalysis {
     private static final List<String> EXCLUDED_OSGI_SERVICE = Arrays.asList("permissionService", "DocumentThumbnailServiceRef", "VideoThumbnailServiceRef", "DocumentViewerServiceRef");
 
     public OsgiReferencesCheck() {
-        super("osgi-references");
+        super("osgi-references",  "Check that the Jahia dependencies match the ones expected for the OSGI services declared in the references");
     }
 
     @Override

@@ -14,7 +14,6 @@ import java.util.TreeSet;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import org.jahia.data.templates.JahiaTemplatesPackage;
 import org.jahia.modules.dependenciesanalyzer.api.DependenciesAnalysis;
 import org.jahia.modules.dependenciesanalyzer.services.impl.AbstractDependenciesAnalysis;
 import org.osgi.service.component.annotations.Component;
@@ -33,7 +32,7 @@ public class OsgiServicesCheck extends AbstractDependenciesAnalysis {
     private static final List<String> EXCLUDED_OSGI_INTERFACE = Arrays.asList("org.osgi.service.cm.ManagedService", "org.osgi.service.cm.ManagedServiceFactory");
 
     public OsgiServicesCheck() {
-        super("osgi-services");
+        super("osgi-services", "Check that the Jahia dependencies match the ones expected for the interfaces used by the OSGI services");
     }
 
     @Override

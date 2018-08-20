@@ -18,7 +18,7 @@ import org.osgi.service.component.annotations.Component;
 public class DefinitionsCheck extends AbstractDependenciesAnalysis {
 
     public DefinitionsCheck() {
-        super("definitions");
+        super("definitions", "Check that the Jahia dependencies match the mixins and node types used in the definitions"); 
     }
 
     @Override

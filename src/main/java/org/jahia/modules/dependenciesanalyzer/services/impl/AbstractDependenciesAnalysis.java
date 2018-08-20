@@ -17,19 +17,21 @@ public abstract class AbstractDependenciesAnalysis implements DependenciesAnalys
     protected static final List<String> MODULES_TO_IGNORE = Arrays.asList("system-jahia", "system-system");
     private final Map<String, Set<String>> expectedDependencies = new TreeMap<>();
     private final String type;
-    private String description;
+    private final String description;
     private long id = -1L;
 
-    public AbstractDependenciesAnalysis(String type) {
+    public AbstractDependenciesAnalysis(String type, String description) {
         this.type = type;
+        this.description = description;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    @Override
     public String getDescription() {
         return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     @Override
@@ -81,7 +83,7 @@ public abstract class AbstractDependenciesAnalysis implements DependenciesAnalys
             if (currentDependencies.containsKey(module)) {
                 dependencies.removeAll(currentDependencies.get(module));
             }
-            results.add(new DependenciesResults(type, module, dependencies));
+            results.add(new DependenciesResults(getType(), getDescription(), module, dependencies));
         });
     }
 
