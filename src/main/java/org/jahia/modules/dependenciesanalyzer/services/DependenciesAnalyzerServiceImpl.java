@@ -211,24 +211,22 @@ public class DependenciesAnalyzerServiceImpl implements DependenciesAnalyzerServ
         }
     }
 
-    private Map<String, Set<String>> getCurrentDependencies() {
-        final Map<String, Set<String>> poms = new TreeMap<>();
-        AbstractDependenciesAnalysis.getActiveModules().forEach(module -> {
-            final Set<String> dependencies = new TreeSet<>();
-            module.getDependencies().forEach(dependency -> {
-                dependencies.add(dependency.getBundle().getSymbolicName());
-            });
-            poms.put(module.getBundle().getSymbolicName(), dependencies);
-        });
-        return poms;
-    }
-
     public void setCurrentDependenciesResults(Map<String, Set<String>> currentDependencies, List<DependenciesResults> results) {
         currentDependencies.entrySet().forEach(entry -> {
             final String module = entry.getKey();
             final Set<String> dependencies = entry.getValue();
             results.add(new DependenciesResults("current", "", module, dependencies));
         });
+    }
+
+    public static Map<String, Set<String>> getCurrentDependencies() {
+        final Map<String, Set<String>> poms = new TreeMap<>();
+        AbstractDependenciesAnalysis.getActiveModules().forEach(module -> {
+            final Set<String> dependencies = new TreeSet<>();
+            dependencies.addAll(module.getDepends());
+            poms.put(module.getBundle().getSymbolicName(), dependencies);
+        });
+        return poms;
     }
 
     private static JCRNodeWrapper mkdirs(String path) throws RepositoryException {
