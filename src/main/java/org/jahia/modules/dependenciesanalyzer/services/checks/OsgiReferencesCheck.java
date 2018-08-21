@@ -14,7 +14,6 @@ import java.util.TreeSet;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import org.jahia.data.templates.JahiaTemplatesPackage;
 import org.jahia.modules.dependenciesanalyzer.api.DependenciesAnalysis;
 import org.jahia.modules.dependenciesanalyzer.services.impl.AbstractDependenciesAnalysis;
 import org.osgi.service.component.annotations.Component;
@@ -33,7 +32,7 @@ public class OsgiReferencesCheck extends AbstractDependenciesAnalysis {
     private static final List<String> EXCLUDED_OSGI_SERVICE = Arrays.asList("permissionService", "DocumentThumbnailServiceRef", "VideoThumbnailServiceRef", "DocumentViewerServiceRef");
 
     public OsgiReferencesCheck() {
-        super("osgi-references",  "Check that the Jahia dependencies match the ones expected for the OSGI services declared in the references");
+        super("osgi-references", "Check that the Jahia dependencies match the ones expected for the OSGI services declared in the references");
     }
 
     @Override

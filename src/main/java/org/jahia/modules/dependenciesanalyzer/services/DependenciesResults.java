@@ -2,7 +2,6 @@ package org.jahia.modules.dependenciesanalyzer.services;
 
 import java.util.Set;
 import org.jahia.data.templates.JahiaTemplatesPackage;
-import org.jahia.modules.dependenciesanalyzer.api.DependenciesAnalysis;
 import org.jahia.registries.ServicesRegistry;
 import org.jahia.services.templates.JahiaTemplateManagerService;
 

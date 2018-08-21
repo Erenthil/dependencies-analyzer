@@ -91,7 +91,7 @@ public class SpringBeansCheck extends AbstractDependenciesAnalysis {
                     origins.put(className, moduleName);
                 }
             }
-            
+
             urls = module.getBundle().findEntries("/", "*.groovy", true);
             if (urls != null) {
                 while (urls.hasMoreElements()) {
@@ -121,7 +121,7 @@ public class SpringBeansCheck extends AbstractDependenciesAnalysis {
                                 origins.put(beanId, moduleName);
                             }
                         }
-                        
+
                         elements = racine.getElementsByTagName("bean");
                         for (int i = 0; i < elements.getLength(); i++) {
                             final Node bean = elements.item(i);
@@ -131,7 +131,7 @@ public class SpringBeansCheck extends AbstractDependenciesAnalysis {
                                 origins.put(beanId, moduleName);
                             }
                         }
-                        
+
                         elements = racine.getElementsByTagName("osgi:list");
                         for (int i = 0; i < elements.getLength(); i++) {
                             final Node bean = elements.item(i);
@@ -146,8 +146,7 @@ public class SpringBeansCheck extends AbstractDependenciesAnalysis {
                         LOGGER.error("Impossible to read Spring XML file", ex);
                     }
                 }
-                
-                
+
             }
         });
         return origins;
