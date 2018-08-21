@@ -3,6 +3,8 @@
 DX module that provides an extensible service to analyze the missing declared dependencies
 * [How to use it](#how-to-use)
     * [utils:graph-missing-dependencies](#utils-graph-missing-dependencies) 
+    * [utils:print-missing-dependencies](#utils-print-missing-dependencies) 
+
 * [How to extend it](#how-to-extend) 
 
 ## <a name="how-to-use"></a>How to use?
@@ -16,7 +18,7 @@ Use `utils:graph-missing-dependencies` to create a graph of the missing declared
     
 ### Commands
 #### <a name="utils-graph-missing-dependencies"></a>utils:graph-missing-dependencies
-Create a graph of the missing declared dependencies.
+Create a graph of the missing declared dependencies. The files are generated in the JCR with the path "/sites/systemsite/files/dependencies-analyzer"
 
 **Options:**  
 
@@ -27,3 +29,16 @@ Name | alias | Mandatory | Value | Description
 **Example:**
 
     utils:graph-missing-dependencies -s  
+    
+#### <a name="utils-print-missing-dependencies"></a>utils:print-missing-dependencies
+Print a graph of the missing declared dependencies.
+
+**Options:**  
+
+Name | alias | Mandatory | Value | Description
+ --- | --- | :---: | :---: | ---
+ -s | --skip | | | Skip modules created by Jahia
+ 
+**Example:**
+
+    utils:print-missing-dependencies -s  
