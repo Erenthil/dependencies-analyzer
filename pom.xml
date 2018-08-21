@@ -10,7 +10,7 @@
     <groupId>org.jahia.modules</groupId>
     <artifactId>dependencies-analyzer</artifactId>
     <name>Dependencies Analyzer</name>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <description>Use to analyse the expected and missing dependencies between modules.</description>
 
@@ -25,7 +25,7 @@
     <scm>
         <connection>scm:git:git@github.com:Erenthil/dependencies-analyzer</connection>
         <developerConnection>scm:git:git@github.com:Erenthil/dependencies-analyzer</developerConnection>
-        <tag>1_0_0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <repositories>
