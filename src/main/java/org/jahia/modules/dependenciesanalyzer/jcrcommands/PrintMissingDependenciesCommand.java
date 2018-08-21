@@ -2,6 +2,7 @@ package org.jahia.modules.dependenciesanalyzer.jcrcommands;
 
 import org.apache.karaf.shell.api.action.Action;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Reference;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.console.Session;
@@ -16,6 +17,9 @@ public class PrintMissingDependenciesCommand implements Action {
     @Reference
     Session session;
 
+    @Option(name = "-s", aliases = "--skip", description = "Ignore modules created by Jahia")
+    private boolean skip;
+
     @Override
     public Object execute() throws Exception {
         final ShellTable table = new ShellTable();
@@ -23,7 +27,7 @@ public class PrintMissingDependenciesCommand implements Action {
         table.column(new Col("Dependency type"));
         table.column(new Col("Dependency"));
         table.column(new Col("Description"));
-        Utils.getDependenciesAnalyzerService().printDependenciesAnalysesList().forEach((line) -> {
+        Utils.getDependenciesAnalyzerService().printDependenciesAnalysesList(skip).forEach((line) -> {
             table.addRow().addContent(line.split(";"));
         });
 

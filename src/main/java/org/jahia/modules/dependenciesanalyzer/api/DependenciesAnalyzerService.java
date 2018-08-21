@@ -4,7 +4,7 @@ import java.util.List;
 
 public interface DependenciesAnalyzerService {
 
-    List<String> printDependenciesAnalysesList();
+    List<String> printDependenciesAnalysesList(boolean skipJahiaModule);
 
     void writeGraph(boolean skipJahiaModule);
 }

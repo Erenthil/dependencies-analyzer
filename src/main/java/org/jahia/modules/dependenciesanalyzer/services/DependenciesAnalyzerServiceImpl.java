@@ -80,7 +80,7 @@ public class DependenciesAnalyzerServiceImpl implements DependenciesAnalyzerServ
     }
 
     @Override
-    public List<String> printDependenciesAnalysesList() {
+    public List<String> printDependenciesAnalysesList(boolean skipJahiaModule) {
         final int nbAnalyses = dependenciesAnalyses.size();
         final List<String> lines = new ArrayList<>(nbAnalyses + 1);
 
@@ -100,11 +100,13 @@ public class DependenciesAnalyzerServiceImpl implements DependenciesAnalyzerServ
 
         missingDependenciesResults.forEach(dependenciesResults -> {
             final String module = dependenciesResults.getModule();
-            final String type = dependenciesResults.getType();
-            final String description = dependenciesResults.getDescription();
-            dependenciesResults.getDependencies().forEach(dependency -> {
-                lines.add(String.format("%s;%s;%s;%s", module, type, dependency, description));
-            });
+            if (!(skipJahiaModule && dependenciesResults.isJahiaModule())) {
+                final String type = dependenciesResults.getType();
+                final String description = dependenciesResults.getDescription();
+                dependenciesResults.getDependencies().forEach(dependency -> {
+                    lines.add(String.format("%s;%s;%s;%s", module, type, dependency, description));
+                });
+            }
         });
         return lines;
     }
