@@ -23,8 +23,8 @@
     </properties>
 
     <scm>
-        <connection>scm:git:git@github.com:Jahia/dependencies-analyzer</connection>
-        <developerConnection>scm:git:git@github.com:Jahia/dependencies-analyzer</developerConnection>
+        <connection>scm:git:git@github.com:Erenthil/dependencies-analyzer</connection>
+        <developerConnection>scm:git:git@github.com:Erenthil/dependencies-analyzer</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
