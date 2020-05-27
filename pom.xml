@@ -5,12 +5,12 @@
     <parent>
         <artifactId>jahia-modules</artifactId>
         <groupId>org.jahia.modules</groupId>
-        <version>7.2.3.1</version>
+        <version>8.0.0.0</version>
     </parent>
     <groupId>org.jahia.modules</groupId>
     <artifactId>dependencies-analyzer</artifactId>
     <name>Dependencies Analyzer</name>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <description>Use to analyse the expected and missing dependencies between modules.</description>
 
@@ -20,6 +20,7 @@
         <export-package>org.jahia.modules.dependenciesanalyzer.api,
             org.jahia.modules.dependenciesanalyzer.services.impl,
             com.google.gson.*</export-package>
+        <jahia-module-signature>MC0CFQCQL4QqFQF84ZS4t00uIlatSqZ3LQIUbYYufLIRPaj1egifS171v3s/Rsw=</jahia-module-signature>
     </properties>
 
     <scm>
