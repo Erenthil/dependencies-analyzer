@@ -20,7 +20,7 @@
         <export-package>org.jahia.modules.dependenciesanalyzer.api,
             org.jahia.modules.dependenciesanalyzer.services.impl,
             com.google.gson.*</export-package>
-        <jahia-module-signature>MC0CFQCQL4QqFQF84ZS4t00uIlatSqZ3LQIUbYYufLIRPaj1egifS171v3s/Rsw=</jahia-module-signature>
+        <jahia-module-signature>MCwCFGBThDrEeqdtGmojC5mrgVcQ9TwaAhQwSUk+LJZPWE3DJ3F0FYjdSYIU+w==</jahia-module-signature>
     </properties>
 
     <scm>
